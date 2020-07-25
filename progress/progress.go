@@ -34,6 +34,8 @@ func (p *Progress) run() {
 		case <-ticker.C:
 			p.writeProgress()
 		case <-p.stopCh:
+			p.writeProgress()
+			fmt.Println()
 			return
 		}
 	}
@@ -42,8 +44,6 @@ func (p *Progress) run() {
 func (p *Progress) Stop() {
 	p.stopCh <- struct{}{}
 	p.done.Wait()
-	p.writeProgress()
-	fmt.Println()
 }
 
 func (p *Progress) writeProgress() {
