@@ -35,29 +35,29 @@ type progress struct {
 	done     sync.WaitGroup
 }
 
-func newProgress(total int) *progress {
-	return &progress{
+func start(total int) *progress {
+	p := &progress{
 		total:  total,
 		stopCh: make(chan struct{}, 1),
 	}
+	p.done.Add(1)
+	go p.run()
+	return p
 }
 
-func (p *progress) start() {
-	p.done.Add(1)
-	go func() {
-		defer p.done.Done()
-		ticker := time.NewTicker(500 * time.Millisecond)
-		defer ticker.Stop()
+func (p *progress) run() {
+	defer p.done.Done()
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
 
-		for {
-			select {
-			case <-ticker.C:
-				p.writeProgress()
-			case <-p.stopCh:
-				return
-			}
+	for {
+		select {
+		case <-ticker.C:
+			p.writeProgress()
+		case <-p.stopCh:
+			return
 		}
-	}()
+	}
 }
 
 func (p *progress) stop() {
@@ -83,13 +83,14 @@ func (p *progress) increment() {
 func main() {
 	numSites := len(sites)
 
-	prog := newProgress(numSites)
-
 	wg := sync.WaitGroup{}
 	wg.Add(numSites)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	prog := start(numSites)
+	defer prog.stop()
 
 	for _, s := range sites {
 		go func(ctx context.Context, s site) {
@@ -99,8 +100,5 @@ func main() {
 		}(ctx, s)
 	}
 
-	prog.start()
 	wg.Wait()
-	prog.stop()
-	fmt.Println("done")
 }
