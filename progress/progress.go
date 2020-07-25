@@ -32,9 +32,9 @@ func (p *Progress) run() {
 	for {
 		select {
 		case <-ticker.C:
-			p.writeProgress()
+			p.draw()
 		case <-p.stopCh:
-			p.writeProgress()
+			p.draw()
 			fmt.Println()
 			return
 		}
@@ -46,7 +46,7 @@ func (p *Progress) Stop() {
 	p.done.Wait()
 }
 
-func (p *Progress) writeProgress() {
+func (p *Progress) draw() {
 	p.RLock()
 	defer p.RUnlock()
 	percent := (float32(p.complete) / float32(p.total)) * 100.0
