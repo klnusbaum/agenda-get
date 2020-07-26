@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const _barWidth = 20
+
 type Progress struct {
 	sync.RWMutex
 	total    int
@@ -50,7 +52,21 @@ func (p *Progress) draw() {
 	p.RLock()
 	defer p.RUnlock()
 	percent := (float32(p.complete) / float32(p.total)) * 100.0
-	fmt.Printf("\r%.f%% complete", percent)
+	bar := p.drawBar()
+	fmt.Printf("\r|%3.f%% complete %s|", percent, bar)
+}
+
+func (p *Progress) drawBar() string {
+	length := int((float32(p.complete) / float32(p.total)) * _barWidth)
+	bar := ""
+	for i := 0; i < _barWidth; i++ {
+		if i < length {
+			bar = bar + "="
+		} else {
+			bar = bar + " "
+		}
+	}
+	return bar
 }
 
 func (p *Progress) Increment() {
