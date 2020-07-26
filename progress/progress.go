@@ -14,7 +14,7 @@ type Progress struct {
 	done     sync.WaitGroup
 }
 
-func Start(total int) *Progress {
+func New(total int) *Progress {
 	p := &Progress{
 		total:  total,
 		stopCh: make(chan struct{}, 1),

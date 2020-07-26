@@ -37,7 +37,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	prog := progress.Start(numSites)
+	prog := progress.New(numSites)
 	defer prog.Stop()
 
 	for _, s := range sites {
