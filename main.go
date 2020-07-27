@@ -15,11 +15,6 @@ import (
 )
 
 func main() {
-	numSites := len(sites.Sites)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	user, err := user.Current()
 	if err != nil {
 		fatalExit(fmt.Sprintf("can't get current user: %s", err))
@@ -32,6 +27,9 @@ func main() {
 		fatalExit(fmt.Sprintf("can't make agenda directory: %s", err))
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	numSites := len(sites.Sites)
 	wg := sync.WaitGroup{}
 	wg.Add(numSites)
 	collector := errcol.Default()
