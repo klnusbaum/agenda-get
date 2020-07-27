@@ -74,17 +74,16 @@ func (s simpleSite) getDoc(ctx context.Context, docURL, outDir string) error {
 	if err != nil {
 		return fmt.Errorf("get agenda %s", err)
 	}
-
 	defer resp.Body.Close()
-	output, err := os.Create(path.Join(outDir, s.city))
+
+	filename := s.city + "-" + path.Base(resp.Request.URL.Path)
+	outFile, err := os.Create(path.Join(outDir, filename))
 	if err != nil {
 		return fmt.Errorf("create output: %s", err)
 	}
-
-	if _, err := io.Copy(output, resp.Body); err != nil {
+	if _, err := io.Copy(outFile, resp.Body); err != nil {
 		return fmt.Errorf("write output: %s", err)
 	}
-
 	return nil
 }
 
