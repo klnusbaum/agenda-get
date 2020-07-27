@@ -22,14 +22,14 @@ func main() {
 
 	user, err := user.Current()
 	if err != nil {
-		panic(fmt.Sprintf("can't get current user: %s", err))
+		fatalExit(fmt.Sprintf("can't get current user: %s", err))
 	}
 	outDir := path.Join(user.HomeDir, "agendas")
 	if err := os.RemoveAll(outDir); err != nil {
-		panic(fmt.Sprintf("cant clear output directory: %s", err))
+		fatalExit(fmt.Sprintf("cant clear output directory: %s", err))
 	}
 	if err := os.MkdirAll(outDir, 0755); err != nil {
-		panic(fmt.Sprintf("can't make agenda directory: %s", err))
+		fatalExit(fmt.Sprintf("can't make agenda directory: %s", err))
 	}
 
 	wg := sync.WaitGroup{}
@@ -51,4 +51,9 @@ func main() {
 	collector.ForEach(func(err error) {
 		fmt.Printf("%s\n", err)
 	})
+}
+
+func fatalExit(msg string) {
+	fmt.Fprintf(os.Stderr, msg)
+	os.Exit(1)
 }
