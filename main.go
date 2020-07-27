@@ -2,51 +2,55 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"os/user"
+	"path"
 	"sync"
-	"time"
 
+	"github.com/klnusbaum/agenda-get/errcol"
 	"github.com/klnusbaum/agenda-get/progress"
+	"github.com/klnusbaum/agenda-get/sites"
 )
 
-var sites = []site{
-	simpleSite{"blah.com", 1},
-	simpleSite{"foo.com", 4},
-	simpleSite{"bar.com", 6},
-	simpleSite{"baz.com", 10},
-}
-
-type site interface {
-	get(context.Context)
-}
-
-type simpleSite struct {
-	url      string
-	duration time.Duration
-}
-
-func (s simpleSite) get(ctx context.Context) {
-	time.Sleep(s.duration * time.Second)
-}
-
 func main() {
-	numSites := len(sites)
-
-	wg := sync.WaitGroup{}
-	wg.Add(numSites)
+	numSites := len(sites.Sites)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	prog := progress.New(numSites)
-	defer prog.Stop()
+	user, err := user.Current()
+	if err != nil {
+		fmt.Println("can't get current user")
+		os.Exit(1)
+	}
+	outDir := path.Join(user.HomeDir, "agendas")
+	if err := os.RemoveAll(outDir); err != nil {
+		fmt.Println("can't clear output directory")
+		os.Exit(1)
+	}
+	if err := os.MkdirAll(outDir, 0755); err != nil {
+		fmt.Println("can't make agenda directory")
+		os.Exit(1)
+	}
 
-	for _, s := range sites {
-		go func(ctx context.Context, s site) {
+	wg := sync.WaitGroup{}
+	wg.Add(numSites)
+	collector := errcol.Default()
+	prog := progress.New(numSites)
+
+	for _, s := range sites.Sites {
+		go func(ctx context.Context, s sites.Site) {
 			defer wg.Done()
 			defer prog.Increment()
-			s.get(ctx)
+			collector.Err(s.Get(ctx, outDir))
 		}(ctx, s)
 	}
 
 	wg.Wait()
+	prog.Stop()
+
+	collector.ForEach(func(err error) {
+		fmt.Printf("%s\n", err)
+	})
 }
