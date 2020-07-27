@@ -22,17 +22,14 @@ func main() {
 
 	user, err := user.Current()
 	if err != nil {
-		fmt.Println("can't get current user")
-		os.Exit(1)
+		panic(fmt.Sprintf("can't get current user: %s", err))
 	}
 	outDir := path.Join(user.HomeDir, "agendas")
 	if err := os.RemoveAll(outDir); err != nil {
-		fmt.Println("can't clear output directory")
-		os.Exit(1)
+		panic(fmt.Sprintf("cant clear output directory: %s", err))
 	}
 	if err := os.MkdirAll(outDir, 0755); err != nil {
-		fmt.Println("can't make agenda directory")
-		os.Exit(1)
+		panic(fmt.Sprintf("can't make agenda directory: %s", err))
 	}
 
 	wg := sync.WaitGroup{}
