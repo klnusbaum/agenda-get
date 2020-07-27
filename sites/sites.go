@@ -16,6 +16,17 @@ var Sites = []Site{
 	simpleSite{
 		"oakland",
 		"https://www.oaklandca.gov/boards-commissions/planning-commission/meetings",
+		func(doc *goquery.Document) (string, bool) {
+			return doc.
+				Find("#meetings").
+				Find("tbody").
+				Find("tr").
+				First().
+				Find("td").
+				Eq(4).
+				Find("a").
+				Attr("href")
+		},
 	},
 }
 
@@ -26,6 +37,7 @@ type Site interface {
 type simpleSite struct {
 	city    string
 	baseURL string
+	finder  func(*goquery.Document) (string, bool)
 }
 
 func (s simpleSite) Get(ctx context.Context, outDir string) error {
@@ -51,16 +63,7 @@ func (s simpleSite) docURL(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("baseURL: %s", err)
 	}
 
-	latestMeeting, found := doc.
-		Find("#meetings").
-		Find("tbody").
-		Find("tr").
-		First().
-		Find("td").
-		Eq(4).
-		Find("a").
-		Attr("href")
-
+	latestMeeting, found := s.finder(doc)
 	if !found {
 		html, _ := goquery.OuterHtml(doc.Selection)
 		return "", fmt.Errorf("no doc found: %s", html)
