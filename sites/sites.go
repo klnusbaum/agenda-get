@@ -65,8 +65,7 @@ func (s simpleSite) docURL(ctx context.Context) (string, error) {
 
 	latestMeeting, found := s.finder(doc)
 	if !found {
-		html, _ := goquery.OuterHtml(doc.Selection)
-		return "", fmt.Errorf("no doc found: %s", html)
+		return "", fmt.Errorf("no doc found")
 	}
 
 	return latestMeeting, nil
