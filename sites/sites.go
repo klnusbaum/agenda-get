@@ -30,8 +30,12 @@ var Sites = []Site{
 	},
 }
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type Site interface {
-	Get(ctx context.Context, outDir string) error
+	Get(ctx context.Context, client HTTPClient, outDir string) error
 }
 
 type simpleSite struct {
@@ -40,7 +44,7 @@ type simpleSite struct {
 	finder  func(*goquery.Document) (string, bool)
 }
 
-func (s simpleSite) Get(ctx context.Context, outDir string) error {
+func (s simpleSite) Get(ctx context.Context, client HTTPClient, outDir string) error {
 	docURL, err := s.docURL(ctx)
 	if err != nil {
 		return s.siteErr(err)

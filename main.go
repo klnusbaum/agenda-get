@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/user"
 	"path"
@@ -38,18 +39,18 @@ func main() {
 	wg.Add(numSites)
 	collector := errcol.Default()
 	prog := progress.New(numSites)
+	client := &http.Client{}
 
 	for _, s := range sites.Sites {
 		go func(ctx context.Context, s sites.Site) {
 			defer wg.Done()
 			defer prog.Increment()
-			collector.Err(s.Get(ctx, outDir))
+			collector.Err(s.Get(ctx, client, outDir))
 		}(ctx, s)
 	}
 
 	wg.Wait()
 	prog.Stop()
-
 	collector.ForEach(func(err error) {
 		fmt.Printf("%s\n", err)
 	})
