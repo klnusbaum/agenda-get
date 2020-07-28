@@ -3,10 +3,8 @@ package sites
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"path"
 
 	"github.com/PuerkitoBio/goquery"
@@ -35,7 +33,8 @@ type HTTPClient interface {
 }
 
 type Site interface {
-	Get(ctx context.Context, client HTTPClient, outDir string) error
+	Entity() string
+	Get(ctx context.Context, client HTTPClient) (Agenda, error)
 }
 
 type simpleSite struct {
@@ -44,19 +43,28 @@ type simpleSite struct {
 	finder  func(*goquery.Document) (string, bool)
 }
 
-func (s simpleSite) Get(ctx context.Context, client HTTPClient, outDir string) error {
-	docURL, err := s.docURL(ctx)
-	if err != nil {
-		return s.siteErr(err)
-	}
-	if err := s.getDoc(ctx, docURL, outDir); err != nil {
-		return s.siteErr(err)
-	}
-	return nil
+func (s simpleSite) Entity() string {
+	return s.entity
 }
 
-func (s simpleSite) docURL(ctx context.Context) (string, error) {
-	resp, err := get(ctx, s.baseURL)
+func (s simpleSite) Get(ctx context.Context, client HTTPClient) (Agenda, error) {
+	agendaURL, err := s.agendaURL(ctx, client)
+	if err != nil {
+		return Agenda{}, s.siteErr(err)
+	}
+	resp, err := get(ctx, client, agendaURL)
+	if err != nil {
+		return Agenda{}, s.siteErr(err)
+	}
+	return Agenda{
+		Entity:  s.entity,
+		Name:    path.Base(resp.Request.URL.Path),
+		Content: resp.Body,
+	}, nil
+}
+
+func (s simpleSite) agendaURL(ctx context.Context, client HTTPClient) (string, error) {
+	resp, err := get(ctx, client, s.baseURL)
 	if err != nil {
 		return "", fmt.Errorf("get page: %s", err)
 	}
@@ -75,30 +83,11 @@ func (s simpleSite) docURL(ctx context.Context) (string, error) {
 	return latestMeeting, nil
 }
 
-func (s simpleSite) getDoc(ctx context.Context, docURL, outDir string) error {
-	resp, err := get(ctx, docURL)
-	if err != nil {
-		return fmt.Errorf("get agenda %s", err)
-	}
-	defer resp.Body.Close()
-
-	filename := s.entity + "-" + path.Base(resp.Request.URL.Path)
-	outFile, err := os.Create(path.Join(outDir, filename))
-	if err != nil {
-		return fmt.Errorf("create output: %s", err)
-	}
-	if _, err := io.Copy(outFile, resp.Body); err != nil {
-		return fmt.Errorf("write output: %s", err)
-	}
-	return nil
-}
-
 func (s simpleSite) siteErr(err error) error {
 	return fmt.Errorf("%s: %s\n", s.entity, err)
 }
 
-func get(ctx context.Context, url string) (*http.Response, error) {
-	client := &http.Client{}
+func get(ctx context.Context, client HTTPClient, url string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		log.Fatalln(err)

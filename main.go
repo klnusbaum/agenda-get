@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/user"
@@ -40,7 +41,15 @@ func main() {
 		go func(ctx context.Context, s sites.Site) {
 			defer wg.Done()
 			defer prog.Increment()
-			collector.Err(s.Get(ctx, client, outDir))
+			agenda, err := s.Get(ctx, client)
+			if err != nil {
+				collector.Err(err)
+				return
+			}
+			if err := saveAgenda(agenda, outDir); err != nil {
+				collector.Err(err)
+				return
+			}
 		}(ctx, s)
 	}
 
@@ -54,4 +63,17 @@ func main() {
 func fatalExit(msg string) {
 	fmt.Fprintf(os.Stderr, msg)
 	os.Exit(1)
+}
+
+func saveAgenda(agenda sites.Agenda, outDir string) error {
+	defer agenda.Content.Close()
+	filename := agenda.Entity + "-" + agenda.Name
+	outFile, err := os.Create(path.Join(outDir, filename))
+	if err != nil {
+		return fmt.Errorf("create output: %s", err)
+	}
+	if _, err := io.Copy(outFile, agenda.Content); err != nil {
+		return fmt.Errorf("write output: %s", err)
+	}
+	return nil
 }
