@@ -1,2 +1,2 @@
 # agenda-get
-A program for retrieving city council meeting agendas
+A program for retrieving city planning meeting agendas
