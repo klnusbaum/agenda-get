@@ -39,7 +39,7 @@ type Site interface {
 }
 
 type simpleSite struct {
-	city    string
+	entity  string
 	baseURL string
 	finder  func(*goquery.Document) (string, bool)
 }
@@ -82,7 +82,7 @@ func (s simpleSite) getDoc(ctx context.Context, docURL, outDir string) error {
 	}
 	defer resp.Body.Close()
 
-	filename := s.city + "-" + path.Base(resp.Request.URL.Path)
+	filename := s.entity + "-" + path.Base(resp.Request.URL.Path)
 	outFile, err := os.Create(path.Join(outDir, filename))
 	if err != nil {
 		return fmt.Errorf("create output: %s", err)
@@ -94,7 +94,7 @@ func (s simpleSite) getDoc(ctx context.Context, docURL, outDir string) error {
 }
 
 func (s simpleSite) siteErr(err error) error {
-	return fmt.Errorf("%s: %s\n", s.city, err)
+	return fmt.Errorf("%s: %s\n", s.entity, err)
 }
 
 func get(ctx context.Context, url string) (*http.Response, error) {
