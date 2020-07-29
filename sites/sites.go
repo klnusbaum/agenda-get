@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"html"
 	"log"
 	"net/http"
 	"path"
@@ -57,7 +56,7 @@ var Sites = []Site{
 				return "", fmt.Errorf("couldn't parse url from javascript: %s", js)
 			}
 
-			return "https://bakersfield.novusagenda.com/AgendaPublic/" + html.UnescapeString(matches[1]), nil
+			return "https://bakersfield.novusagenda.com/AgendaPublic/" + matches[1], nil
 		},
 	},
 }
