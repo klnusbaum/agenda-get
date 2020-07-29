@@ -2,20 +2,25 @@ package sites
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"path"
+	"regexp"
 
 	"github.com/PuerkitoBio/goquery"
 )
+
+var singleQuoteMatcher = regexp.MustCompile("'(.+?)'")
 
 var Sites = []Site{
 	simpleSite{
 		"oakland",
 		"https://www.oaklandca.gov/boards-commissions/planning-commission/meetings",
-		func(doc *goquery.Document) (string, bool) {
-			return doc.
+		func(doc *goquery.Document) (string, error) {
+			link, found := doc.
 				Find("#meetings").
 				Find("tbody").
 				Find("tr").
@@ -24,6 +29,35 @@ var Sites = []Site{
 				Eq(4).
 				Find("a").
 				Attr("href")
+			if !found {
+				return "", errors.New("couldn't find href attribute")
+			}
+			return link, nil
+		},
+	},
+	simpleSite{
+		"bakersfield",
+		"https://bakersfield.novusagenda.com/AgendaPublic/?MeetingType=6",
+		func(doc *goquery.Document) (string, error) {
+			js, found := doc.
+				Find("#ctl00_ContentPlaceHolder1_SearchAgendasMeetings_radGridMeetings_ctl00").
+				Find("tbody").
+				Find("tr").
+				First().
+				Find("td").
+				Eq(4).
+				Find("a").
+				Attr("onclick")
+			if !found {
+				return "", errors.New("couldn't find onclick attribute")
+			}
+
+			matches := singleQuoteMatcher.FindStringSubmatch(js)
+			if len(matches) < 2 {
+				return "", fmt.Errorf("couldn't parse url from javascript: %s", js)
+			}
+
+			return "https://bakersfield.novusagenda.com/AgendaPublic/" + html.UnescapeString(matches[1]), nil
 		},
 	},
 }
@@ -40,7 +74,7 @@ type Site interface {
 type simpleSite struct {
 	entity  string
 	baseURL string
-	finder  func(*goquery.Document) (string, bool)
+	finder  func(*goquery.Document) (string, error)
 }
 
 func (s simpleSite) Entity() string {
@@ -75,12 +109,12 @@ func (s simpleSite) agendaURL(ctx context.Context, client HTTPClient) (string, e
 		return "", fmt.Errorf("baseURL: %s", err)
 	}
 
-	latestMeeting, found := s.finder(doc)
-	if !found {
-		return "", fmt.Errorf("no doc found")
+	agendaURL, err := s.finder(doc)
+	if err != nil {
+		return "", fmt.Errorf("finder: %s", err)
 	}
 
-	return latestMeeting, nil
+	return agendaURL, nil
 }
 
 func (s simpleSite) siteErr(err error) error {

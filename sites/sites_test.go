@@ -19,6 +19,10 @@ func TestSites(t *testing.T) {
 			"https://www.oaklandca.gov/boards-commissions/planning-commission/meetings":                        "oakland.html",
 			"https://cao-94612.s3.amazonaws.com/documents/August-5-2020-Planning-Commission-Agenda-Online.pdf": "testok.pdf",
 		},
+		"bakersfield": {
+			"https://bakersfield.novusagenda.com/AgendaPublic/?MeetingType=6":                                                    "bakersfield.html",
+			"https://bakersfield.novusagenda.com/AgendaPublic/MeetingView.aspx?MeetingID=549&MinutesMeetingID=-1&doctype=Agenda": "testok.pdf",
+		},
 	}
 
 	for _, site := range Sites {
