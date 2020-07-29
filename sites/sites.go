@@ -50,12 +50,10 @@ var Sites = []Site{
 			if !found {
 				return "", errors.New("couldn't find onclick attribute")
 			}
-
 			matches := singleQuoteMatcher.FindStringSubmatch(js)
 			if len(matches) < 2 {
 				return "", fmt.Errorf("couldn't parse url from javascript: %s", js)
 			}
-
 			return "https://bakersfield.novusagenda.com/AgendaPublic/" + matches[1], nil
 		},
 	},
