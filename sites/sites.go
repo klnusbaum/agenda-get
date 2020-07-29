@@ -59,6 +59,26 @@ var Sites = []Site{
 			return "https://bakersfield.novusagenda.com/AgendaPublic/" + matches[1], nil
 		},
 	},
+	simpleSite{
+		"fresno",
+		"https://fresno.legistar.com/DepartmentDetail.aspx?ID=24452&GUID=26F8DAF5-AC08-46BE-A9E4-EC0C6DDC0F66&Search=",
+		func(doc *goquery.Document) (string, error) {
+			link, found := doc.
+				Find("#ctl00_ContentPlaceHolder1_gridCalendar_ctl00").
+				Find("tbody").
+				Find("tr").
+				First().
+				Find("td").
+				Eq(5).
+				Find("a").
+				Attr("href")
+			if !found {
+				return "", errors.New("couldn't find href attribute")
+			}
+
+			return "https://fresno.legistar.com/" + link, nil
+		},
+	},
 }
 
 type HTTPClient interface {

@@ -23,6 +23,10 @@ func TestSites(t *testing.T) {
 			"https://bakersfield.novusagenda.com/AgendaPublic/?MeetingType=6":                                                    "bakersfield.html",
 			"https://bakersfield.novusagenda.com/AgendaPublic/MeetingView.aspx?MeetingID=549&MinutesMeetingID=-1&doctype=Agenda": "testok",
 		},
+		"fresno": {
+			"https://fresno.legistar.com/DepartmentDetail.aspx?ID=24452&GUID=26F8DAF5-AC08-46BE-A9E4-EC0C6DDC0F66&Search=": "fresno.html",
+			"https://fresno.legistar.com/View.ashx?M=A&ID=749662&GUID=19C73909-F956-44B2-A70E-DC38D5FBEBE1":                "testok",
+		},
 	}
 
 	for _, site := range Sites {
