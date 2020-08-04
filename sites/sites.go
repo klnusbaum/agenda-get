@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -35,7 +34,7 @@ func (s SimpleSite) Get(ctx context.Context, client HTTPClient, today time.Time)
 		return Agenda{}, s.siteErr(err)
 	}
 	return Agenda{
-		Name:    s.entity + "-" + path.Base(resp.Request.URL.Path),
+		Name:    s.entity,
 		Content: resp.Body,
 	}, nil
 }
