@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -15,17 +16,17 @@ type HTTPClient interface {
 }
 
 type Site interface {
-	Get(ctx context.Context, client HTTPClient) (Agenda, error)
+	Get(ctx context.Context, client HTTPClient, today time.Time) (Agenda, error)
 }
 
 type SimpleSite struct {
 	entity  string
 	baseURL string
-	finder  func(*goquery.Document) (string, error)
+	finder  func(*goquery.Document, time.Time) (string, error)
 }
 
-func (s SimpleSite) Get(ctx context.Context, client HTTPClient) (Agenda, error) {
-	agendaURL, err := s.agendaURL(ctx, client)
+func (s SimpleSite) Get(ctx context.Context, client HTTPClient, today time.Time) (Agenda, error) {
+	agendaURL, err := s.agendaURL(ctx, client, today)
 	if err != nil {
 		return Agenda{}, s.siteErr(err)
 	}
@@ -39,7 +40,7 @@ func (s SimpleSite) Get(ctx context.Context, client HTTPClient) (Agenda, error) 
 	}, nil
 }
 
-func (s SimpleSite) agendaURL(ctx context.Context, client HTTPClient) (string, error) {
+func (s SimpleSite) agendaURL(ctx context.Context, client HTTPClient, today time.Time) (string, error) {
 	resp, err := get(ctx, client, s.baseURL)
 	if err != nil {
 		return "", fmt.Errorf("get page: %s", err)
@@ -51,7 +52,7 @@ func (s SimpleSite) agendaURL(ctx context.Context, client HTTPClient) (string, e
 		return "", fmt.Errorf("baseURL: %s", err)
 	}
 
-	agendaURL, err := s.finder(doc)
+	agendaURL, err := s.finder(doc, today)
 	if err != nil {
 		return "", fmt.Errorf("finder: %s", err)
 	}

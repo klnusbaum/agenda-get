@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -16,6 +17,7 @@ func TestSites(t *testing.T) {
 	tests := []struct {
 		entity string
 		site   Site
+		today  time.Time
 		mocks  map[string]string
 	}{
 		{
@@ -37,9 +39,10 @@ func TestSites(t *testing.T) {
 		{
 			entity: "fresno",
 			site:   Fresno(),
+			today:  time.Date(2020, time.August, 3, 0, 0, 0, 0, time.UTC),
 			mocks: map[string]string{
 				"https://fresno.legistar.com/DepartmentDetail.aspx?ID=24452&GUID=26F8DAF5-AC08-46BE-A9E4-EC0C6DDC0F66&Search=": "fresno.html",
-				"https://fresno.legistar.com/View.ashx?M=A&ID=749662&GUID=19C73909-F956-44B2-A70E-DC38D5FBEBE1":                "testok",
+				"https://fresno.legistar.com/View.ashx?M=A&ID=749663&GUID=72538FC3-A2B5-4017-BC5A-39FE482D612E":                "testok",
 			},
 		},
 		{
@@ -57,7 +60,7 @@ func TestSites(t *testing.T) {
 			client := testClient{
 				responses: tt.mocks,
 			}
-			agenda, err := tt.site.Get(context.Background(), client)
+			agenda, err := tt.site.Get(context.Background(), client, tt.today)
 			require.NoError(t, err)
 			content, err := ioutil.ReadAll(agenda.Content)
 			require.NoError(t, err)

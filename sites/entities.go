@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -14,7 +15,7 @@ func Oakland() SimpleSite {
 	return SimpleSite{
 		"oakland",
 		"https://www.oaklandca.gov/boards-commissions/planning-commission/meetings",
-		func(doc *goquery.Document) (string, error) {
+		func(doc *goquery.Document, today time.Time) (string, error) {
 			link, found := doc.
 				Find("#meetings").
 				Find("tbody").
@@ -36,7 +37,7 @@ func Bakersfield() SimpleSite {
 	return SimpleSite{
 		"bakersfield",
 		"https://bakersfield.novusagenda.com/AgendaPublic/?MeetingType=6",
-		func(doc *goquery.Document) (string, error) {
+		func(doc *goquery.Document, today time.Time) (string, error) {
 			js, found := doc.
 				Find("#ctl00_ContentPlaceHolder1_SearchAgendasMeetings_radGridMeetings_ctl00").
 				Find("tbody").
@@ -62,12 +63,24 @@ func Fresno() SimpleSite {
 	return SimpleSite{
 		"fresno",
 		"https://fresno.legistar.com/DepartmentDetail.aspx?ID=24452&GUID=26F8DAF5-AC08-46BE-A9E4-EC0C6DDC0F66&Search=",
-		func(doc *goquery.Document) (string, error) {
-			link, found := doc.
+		func(doc *goquery.Document, today time.Time) (string, error) {
+			meetings := doc.
 				Find("#ctl00_ContentPlaceHolder1_gridCalendar_ctl00").
 				Find("tbody").
-				Find("tr").
-				First().
+				Find("tr")
+			if meetings.Length() == 0 {
+				return "", errors.New("no meetings this month")
+			}
+
+			link, found := meetings.
+				FilterFunction(func(i int, sel *goquery.Selection) bool {
+					date, err := time.Parse("1/2/2006", sel.Find("td").Eq(0).Text())
+					if err != nil {
+						return false
+					}
+					return date.After(today)
+				}).
+				Last().
 				Find("td").
 				Eq(5).
 				Find("a").
@@ -85,7 +98,7 @@ func SanFrancisco() SimpleSite {
 	return SimpleSite{
 		"sanfrancisco",
 		"https://sfplanning.org/hearings-cpc",
-		func(doc *goquery.Document) (string, error) {
+		func(doc *goquery.Document, today time.Time) (string, error) {
 			link, found := doc.
 				Find("div.view-content").
 				Find("div.views-row").
