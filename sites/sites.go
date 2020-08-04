@@ -15,7 +15,6 @@ type HTTPClient interface {
 }
 
 type Site interface {
-	Entity() string
 	Get(ctx context.Context, client HTTPClient) (Agenda, error)
 }
 
