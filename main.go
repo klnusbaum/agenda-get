@@ -9,6 +9,7 @@ import (
 	"os/user"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/klnusbaum/agenda-get/errcol"
 	"github.com/klnusbaum/agenda-get/progress"
@@ -48,7 +49,7 @@ func main() {
 		go func(ctx context.Context, s sites.Site) {
 			defer wg.Done()
 			defer prog.Increment()
-			agenda, err := s.Get(ctx, client)
+			agenda, err := s.Get(ctx, client, time.Now())
 			if err != nil {
 				collector.Err(err)
 				return
