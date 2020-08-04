@@ -15,6 +15,13 @@ import (
 	"github.com/klnusbaum/agenda-get/sites"
 )
 
+var allSites = []sites.Site{
+	sites.Oakland(),
+	sites.Bakersfield(),
+	sites.Fresno(),
+	sites.SanFrancisco(),
+}
+
 func main() {
 	user, err := user.Current()
 	if err != nil {
@@ -30,14 +37,14 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	numSites := len(sites.Sites)
+	numSites := len(allSites)
 	wg := sync.WaitGroup{}
 	wg.Add(numSites)
 	collector := errcol.Default()
 	prog := progress.New(numSites)
 	client := &http.Client{}
 
-	for _, s := range sites.Sites {
+	for _, s := range allSites {
 		go func(ctx context.Context, s sites.Site) {
 			defer wg.Done()
 			defer prog.Increment()
