@@ -27,6 +27,10 @@ func TestSites(t *testing.T) {
 			"https://fresno.legistar.com/DepartmentDetail.aspx?ID=24452&GUID=26F8DAF5-AC08-46BE-A9E4-EC0C6DDC0F66&Search=": "fresno.html",
 			"https://fresno.legistar.com/View.ashx?M=A&ID=749662&GUID=19C73909-F956-44B2-A70E-DC38D5FBEBE1":                "testok",
 		},
+		"sanfrancisco": {
+			"https://sfplanning.org/hearings-cpc":                                         "sanfrancisco.html",
+			"https://sfplanning.org/sites/default/files/agendas/2020-07/20200730_cal.pdf": "testok",
+		},
 	}
 
 	for _, site := range Sites {

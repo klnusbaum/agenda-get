@@ -77,6 +77,23 @@ var Sites = []Site{
 			return "https://fresno.legistar.com/" + link, nil
 		},
 	},
+	simpleSite{
+		"sanfrancisco",
+		"https://sfplanning.org/hearings-cpc",
+		func(doc *goquery.Document) (string, error) {
+			link, found := doc.
+				Find("div.view-content").
+				Find("div.views-row").
+				First().
+				Find("div.right").
+				Find("a:contains(AGENDA)").
+				Attr("href")
+			if !found {
+				return "", errors.New("couldn't find href attribute")
+			}
+			return link, nil
+		},
+	},
 }
 
 type HTTPClient interface {
