@@ -24,10 +24,6 @@ type SimpleSite struct {
 	finder  func(*goquery.Document) (string, error)
 }
 
-func (s SimpleSite) Entity() string {
-	return s.entity
-}
-
 func (s SimpleSite) Get(ctx context.Context, client HTTPClient) (Agenda, error) {
 	agendaURL, err := s.agendaURL(ctx, client)
 	if err != nil {
