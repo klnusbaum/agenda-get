@@ -38,8 +38,7 @@ func (s SimpleSite) Get(ctx context.Context, client HTTPClient) (Agenda, error) 
 		return Agenda{}, s.siteErr(err)
 	}
 	return Agenda{
-		Entity:  s.entity,
-		Name:    path.Base(resp.Request.URL.Path),
+		Name:    s.entity + "-" + path.Base(resp.Request.URL.Path),
 		Content: resp.Body,
 	}, nil
 }

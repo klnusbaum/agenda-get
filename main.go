@@ -74,8 +74,7 @@ func fatalExit(msg string) {
 
 func saveAgenda(agenda sites.Agenda, outDir string) error {
 	defer agenda.Content.Close()
-	filename := agenda.Entity + "-" + agenda.Name
-	outFile, err := os.Create(path.Join(outDir, filename))
+	outFile, err := os.Create(path.Join(outDir, agenda.Name))
 	if err != nil {
 		return fmt.Errorf("create output: %s", err)
 	}
