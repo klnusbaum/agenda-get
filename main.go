@@ -82,7 +82,7 @@ func handlErr(err error, outDir string) {
 
 func reportFinderError(fErr *sites.FinderError, outDir string) {
 	filename := path.Join(outDir, fErr.Filename())
-	if err := ioutil.WriteFile(filename, fErr.HTML(), 0755); err != nil {
+	if err := ioutil.WriteFile(filename, fErr.HTML(), 0644); err != nil {
 		fatalExit(fmt.Sprintf("report finder error: %s", err))
 	}
 	fmt.Printf("Critical Error. Please a github issue and attach the %s file.\n", filename)
