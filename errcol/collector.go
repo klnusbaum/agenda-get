@@ -4,7 +4,7 @@ import "sync"
 
 type Collector interface {
 	Err(err error)
-	ForEach(func(error))
+	ForEach(func(error) error) error
 }
 
 type DefaultCollector struct {
@@ -26,10 +26,13 @@ func (c *DefaultCollector) Err(err error) {
 	c.errs = append(c.errs, err)
 }
 
-func (c *DefaultCollector) ForEach(f func(error)) {
+func (c *DefaultCollector) ForEach(f func(error) error) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	for _, err := range c.errs {
-		f(err)
+		if err := f(err); err != nil {
+			return err
+		}
 	}
+	return nil
 }

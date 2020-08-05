@@ -2,19 +2,17 @@ package main
 
 import (
 	"context"
-	"errors"
+	"flag"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
 	"path"
-	"sync"
 	"time"
 
 	"github.com/klnusbaum/agenda-get/errcol"
-	"github.com/klnusbaum/agenda-get/progress"
+	"github.com/klnusbaum/agenda-get/orch"
+	"github.com/klnusbaum/agenda-get/prog"
 	"github.com/klnusbaum/agenda-get/sites"
 )
 
@@ -26,81 +24,61 @@ var simpleSites = []sites.SimpleSite{
 	sites.Pasadena(),
 }
 
+var version bool
+var outDir string
+
+func init() {
+	flag.BoolVar(&version, "version", false, "the version of agenda-get")
+	flag.StringVar(&outDir, "out", "", "where agendas should be output")
+
+}
+
 func main() {
-	user, err := user.Current()
-	if err != nil {
-		fatalExit(fmt.Sprintf("can't get current user: %s", err))
+	flag.Parse()
+	if version {
+		printVersion()
+		return
 	}
-	outDir := path.Join(user.HomeDir, "agendas")
-	if err := os.RemoveAll(outDir); err != nil {
-		fatalExit(fmt.Sprintf("cant clear output directory: %s", err))
+	if outDir == "" {
+		defaultDir, err := defaultOutDir()
+		if err != nil {
+			fatalExit(err)
+		}
+		outDir = defaultDir
 	}
-	if err := os.MkdirAll(outDir, 0755); err != nil {
-		fatalExit(fmt.Sprintf("can't make agenda directory: %s", err))
-	}
+
+	errCol := errcol.Default()
+	prog := prog.NewDefault()
+	fetcher := sites.NewDefaultFetcher(&http.Client{}, time.Now())
+	orch := orch.NewDefault(simpleSites, fetcher, prog, outDir, errCol)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	numSites := len(simpleSites)
-	wg := sync.WaitGroup{}
-	wg.Add(numSites)
-	collector := errcol.Default()
-	prog := progress.New(numSites)
-	fetcher := sites.NewDefaultFetcher(&http.Client{}, time.Now())
-
-	for _, s := range simpleSites {
-		go func(ctx context.Context, s sites.SimpleSite) {
-			defer wg.Done()
-			defer prog.Increment()
-			agenda, err := fetcher.Simple(ctx, s)
-			if err != nil {
-				collector.Err(err)
-				return
-			}
-			if err := saveAgenda(agenda, outDir); err != nil {
-				collector.Err(err)
-				return
-			}
-		}(ctx, s)
+	if err := orch.Run(ctx); err != nil {
+		fatalExit(err)
 	}
-
-	wg.Wait()
-	prog.Stop()
-	collector.ForEach(func(err error) {
-		handlErr(err, outDir)
-	})
 }
 
-func handlErr(err error, outDir string) {
-	var fErr *sites.FinderError
-	if errors.As(err, &fErr) {
-		reportFinderError(fErr, outDir)
-		return
+func defaultOutDir() (string, error) {
+	user, err := user.Current()
+	if err != nil {
+		return "", fmt.Errorf("can't get current user: %s", err)
 	}
-	fmt.Printf("%s\n", err)
+	defaultDir := path.Join(user.HomeDir, "agendas")
+	if err := os.RemoveAll(defaultDir); err != nil {
+		return "", fmt.Errorf("cant clear output directory: %s", err)
+	}
+	if err := os.MkdirAll(defaultDir, 0755); err != nil {
+		return "", fmt.Errorf("can't make agenda directory: %s", err)
+	}
+	return defaultDir, nil
 }
 
-func reportFinderError(fErr *sites.FinderError, outDir string) {
-	filename := path.Join(outDir, fErr.Filename())
-	if err := ioutil.WriteFile(filename, fErr.HTML(), 0644); err != nil {
-		fatalExit(fmt.Sprintf("report finder error: %s", err))
-	}
-	fmt.Printf("Critical Error. Please a github issue and attach the %s file.\n", filename)
-}
-
-func fatalExit(msg string) {
-	fmt.Fprintf(os.Stderr, msg)
+func fatalExit(err error) {
+	fmt.Fprintf(os.Stderr, "%s", err)
 	os.Exit(1)
 }
 
-func saveAgenda(agenda sites.Agenda, outDir string) error {
-	defer agenda.Content.Close()
-	outFile, err := os.Create(path.Join(outDir, agenda.Name))
-	if err != nil {
-		return fmt.Errorf("create output: %s", err)
-	}
-	if _, err := io.Copy(outFile, agenda.Content); err != nil {
-		return fmt.Errorf("write output: %s", err)
-	}
-	return nil
+func printVersion() {
+	fmt.Println("TODO - add version logic")
 }
