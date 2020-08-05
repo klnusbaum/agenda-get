@@ -24,6 +24,7 @@ type Site interface {
 type SimpleSite struct {
 	entity  string
 	baseURL string
+	outExt  string
 	finder  func(*goquery.Document, time.Time) (string, error)
 }
 
@@ -42,7 +43,7 @@ func (s SimpleSite) Get(ctx context.Context, client HTTPClient, today time.Time)
 		return Agenda{}, s.siteErr(err)
 	}
 	return Agenda{
-		Name:    s.entity,
+		Name:    s.entity + "." + s.outExt,
 		Content: resp,
 	}, nil
 }

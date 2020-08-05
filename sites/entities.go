@@ -15,6 +15,7 @@ func Oakland() SimpleSite {
 	return SimpleSite{
 		"oakland",
 		"https://www.oaklandca.gov/boards-commissions/planning-commission/meetings",
+		"pdf",
 		func(doc *goquery.Document, today time.Time) (string, error) {
 			link, found := doc.
 				Find("#meetings").
@@ -37,6 +38,7 @@ func Bakersfield() SimpleSite {
 	return SimpleSite{
 		"bakersfield",
 		"https://bakersfield.novusagenda.com/AgendaPublic/?MeetingType=6",
+		"html",
 		func(doc *goquery.Document, today time.Time) (string, error) {
 			js, found := doc.
 				Find("#ctl00_ContentPlaceHolder1_SearchAgendasMeetings_radGridMeetings_ctl00").
@@ -63,6 +65,7 @@ func Fresno() SimpleSite {
 	return SimpleSite{
 		"fresno",
 		"https://fresno.legistar.com/DepartmentDetail.aspx?ID=24452&GUID=26F8DAF5-AC08-46BE-A9E4-EC0C6DDC0F66&Search=",
+		"pdf",
 		func(doc *goquery.Document, today time.Time) (string, error) {
 			meetings := doc.
 				Find("#ctl00_ContentPlaceHolder1_gridCalendar_ctl00").
@@ -98,6 +101,7 @@ func SanFrancisco() SimpleSite {
 	return SimpleSite{
 		"sanfrancisco",
 		"https://sfplanning.org/hearings-cpc",
+		"pdf",
 		func(doc *goquery.Document, today time.Time) (string, error) {
 			link, found := doc.
 				Find("div.view-content").
@@ -118,6 +122,7 @@ func Pasadena() SimpleSite {
 	return SimpleSite{
 		"pasadena",
 		"https://www.cityofpasadena.net/commissions/planning-commission/",
+		"pdf",
 		func(doc *goquery.Document, today time.Time) (string, error) {
 			link, found := doc.
 				Find("#current-agenda > div.vc_tta-panel-body > div:nth-child(2) > div > a").
