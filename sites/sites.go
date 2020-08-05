@@ -43,7 +43,7 @@ func (s SimpleSite) Get(ctx context.Context, client HTTPClient, today time.Time)
 	}
 	return Agenda{
 		Name:    s.entity,
-		Content: resp.Body,
+		Content: resp,
 	}, nil
 }
 
@@ -52,9 +52,9 @@ func (s SimpleSite) agendaURL(ctx context.Context, client HTTPClient, today time
 	if err != nil {
 		return "", fmt.Errorf("get page: %s", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Close()
 
-	basePage, err := ioutil.ReadAll(resp.Body)
+	basePage, err := ioutil.ReadAll(resp)
 	if err != nil {
 		return "", fmt.Errorf("readall: %s", err)
 	}
@@ -76,12 +76,20 @@ func (s SimpleSite) siteErr(err error) error {
 	return fmt.Errorf("%s: %w\n", s.entity, err)
 }
 
-func get(ctx context.Context, client HTTPClient, url string) (*http.Response, error) {
+func get(ctx context.Context, client HTTPClient, url string) (io.ReadCloser, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	req.Header.Set("User-Agent", "Agenda-Get/3.0")
-	return client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("status code %d", resp.StatusCode)
+	}
+	return resp.Body, nil
 }
