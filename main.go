@@ -21,6 +21,7 @@ var allSites = []sites.Site{
 	sites.Bakersfield(),
 	sites.Fresno(),
 	sites.SanFrancisco(),
+	sites.Pasadena(),
 }
 
 func main() {
