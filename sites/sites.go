@@ -3,6 +3,7 @@ package sites
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -22,6 +23,11 @@ type SimpleSite struct {
 	entity  string
 	baseURL string
 	finder  func(*goquery.Document, time.Time) (string, error)
+}
+
+type Agenda struct {
+	Name    string
+	Content io.ReadCloser
 }
 
 func (s SimpleSite) Get(ctx context.Context, client HTTPClient, today time.Time) (Agenda, error) {
