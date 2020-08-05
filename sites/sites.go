@@ -1,9 +1,11 @@
 package sites
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -52,21 +54,26 @@ func (s SimpleSite) agendaURL(ctx context.Context, client HTTPClient, today time
 	}
 	defer resp.Body.Close()
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	basePage, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("readall: %s", err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(basePage))
 	if err != nil {
 		return "", fmt.Errorf("baseURL: %s", err)
 	}
 
 	agendaURL, err := s.finder(doc, today)
 	if err != nil {
-		return "", fmt.Errorf("finder: %s", err)
+		return "", NewFinderError(err, basePage, s.entity)
 	}
 
 	return agendaURL, nil
 }
 
 func (s SimpleSite) siteErr(err error) error {
-	return fmt.Errorf("%s: %s\n", s.entity, err)
+	return fmt.Errorf("%s: %w\n", s.entity, err)
 }
 
 func get(ctx context.Context, client HTTPClient, url string) (*http.Response, error) {

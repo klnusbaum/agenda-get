@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
@@ -65,8 +67,25 @@ func main() {
 	wg.Wait()
 	prog.Stop()
 	collector.ForEach(func(err error) {
-		fmt.Printf("%s\n", err)
+		handlErr(err, outDir)
 	})
+}
+
+func handlErr(err error, outDir string) {
+	var fErr *sites.FinderError
+	if errors.As(err, &fErr) {
+		reportFinderError(fErr, outDir)
+		return
+	}
+	fmt.Printf("%s\n", err)
+}
+
+func reportFinderError(fErr *sites.FinderError, outDir string) {
+	filename := path.Join(outDir, fErr.Filename())
+	if err := ioutil.WriteFile(filename, fErr.HTML(), 0755); err != nil {
+		fatalExit(fmt.Sprintf("report finder error: %s", err))
+	}
+	fmt.Printf("Critical Error. Please a github issue and attach the %s file.\n", filename)
 }
 
 func fatalExit(msg string) {
