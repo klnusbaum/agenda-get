@@ -113,3 +113,19 @@ func SanFrancisco() SimpleSite {
 		},
 	}
 }
+
+func Pasadena() SimpleSite {
+	return SimpleSite{
+		"pasadena",
+		"https://www.cityofpasadena.net/commissions/planning-commission/",
+		func(doc *goquery.Document, today time.Time) (string, error) {
+			link, found := doc.
+				Find("#current-agenda > div.vc_tta-panel-body > div:nth-child(2) > div > a").
+				Attr("href")
+			if !found {
+				return "", errors.New("couldn't find href attribute")
+			}
+			return link, nil
+		},
+	}
+}

@@ -53,6 +53,14 @@ func TestSites(t *testing.T) {
 				"https://sfplanning.org/sites/default/files/agendas/2020-07/20200730_cal.pdf": "testok",
 			},
 		},
+		{
+			entity: "pasadena",
+			site:   Pasadena(),
+			mocks: map[string]string{
+				"https://www.cityofpasadena.net/commissions/planning-commission/":                                                  "pasadena.html",
+				"https://www.cityofpasadena.net/commissions/wp-content/uploads/sites/31/2020-07-22-Planning-Commission-Agenda.pdf": "testok",
+			},
+		},
 	}
 
 	for _, tt := range tests {
