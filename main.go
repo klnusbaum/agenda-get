@@ -19,7 +19,6 @@ import (
 var simpleSites = []sites.SimpleSite{
 	sites.Oakland(),
 	sites.Bakersfield(),
-	sites.Fresno(),
 	sites.SanFrancisco(),
 	sites.Pasadena(),
 }
