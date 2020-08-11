@@ -11,6 +11,30 @@ import (
 
 var singleQuoteMatcher = regexp.MustCompile("'(.+?)'")
 
+func Sacramento() SimpleSite {
+	return SimpleSite{
+		"Sacramento",
+		"http://sacramento.granicus.com/viewpublisher.php?view_id=34",
+		"html",
+		func(doc *goquery.Document, today time.Time) (string, error) {
+			link, found := doc.
+				Find("table .listingTable").
+				Find("tbody").
+				Find("tr").
+				First().
+				Find("td").
+				Eq(4).
+				Find("a").
+				Attr("href")
+			if !found {
+				return "", errors.New("couldn't find href attribute")
+			}
+			return "http:" + link, nil
+		},
+	}
+
+}
+
 func Oakland() SimpleSite {
 	return SimpleSite{
 		"oakland",

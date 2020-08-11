@@ -20,6 +20,13 @@ func TestSimpleSites(t *testing.T) {
 		mocks map[string]string
 	}{
 		{
+			site: Sacramento(),
+			mocks: map[string]string{
+				"http://sacramento.granicus.com/viewpublisher.php?view_id=34":             "sacramento.html",
+				"http://sacramento.granicus.com/AgendaViewer.php?view_id=34&clip_id=4665": "testok",
+			},
+		},
+		{
 			site: Oakland(),
 			mocks: map[string]string{
 				"https://www.oaklandca.gov/boards-commissions/planning-commission/meetings":                        "oakland.html",
